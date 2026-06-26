@@ -1,0 +1,28 @@
+---
+export interface Props {
+  href: string;
+  variant?: 'primary' | 'ghost';
+  /** Trailing glyph shown inside the nested circle. */
+  icon?: string;
+  external?: boolean;
+  class?: string;
+}
+const { href, variant = 'primary', icon = '↗', external = false, class: cn = '' } = Astro.props;
+const isPrimary = variant === 'primary';
+---
+
+<a
+  href={href}
+  {...external ? { target: '_blank', rel: 'noopener' } : {}}
+  class:list={['btn group !pr-1.5', isPrimary ? 'btn-primary' : 'btn-ghost', cn]}
+>
+  <span class="pl-2"><slot /></span>
+  <span
+    class:list={[
+      'grid h-7 w-7 place-items-center rounded-full text-sm transition-transform duration-500 ease-smooth group-hover:translate-x-0.5 group-hover:-translate-y-px',
+      isPrimary ? 'bg-white/20 text-white' : 'bg-accent/15 text-accent',
+    ]}
+  >
+    {icon}
+  </span>
+</a>

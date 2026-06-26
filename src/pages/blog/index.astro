@@ -1,0 +1,99 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const allTags = Array.from(new Set(posts.flatMap((p) => p.data.tags)));
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<BaseLayout title="Blog" description="Posts, notes, and write-ups.">
+  <section class="py-12">
+    <header class="mb-8 reveal">
+      <span class="eyebrow">Blog</span>
+      <h1 class="mt-4 font-display text-4xl font-bold sm:text-5xl">Writing &amp; notes</h1>
+      <p class="mt-3 max-w-xl text-muted">Thoughts, things I'm learning, and the occasional rant.</p>
+    </header>
+
+    {allTags.length > 0 && (
+      <div id="tag-bar" class="mb-8 flex flex-wrap gap-2 reveal">
+        <button data-tag="All" class="rounded-full bg-accent px-4 py-1.5 text-sm font-medium text-white">All</button>
+        {allTags.map((t) => (
+          <button data-tag={t} class="glass rounded-full px-4 py-1.5 text-sm font-medium text-muted hover:text-ink">
+            #{t}
+          </button>
+        ))}
+      </div>
+    )}
+
+    {posts.length === 0 ? (
+      <p class="glass rounded-2xl p-8 text-center text-muted">No posts yet — check back soon!</p>
+    ) : (
+      <div id="post-list" class="grid gap-4">
+        {posts.map((post) => (
+          <a
+            href={`/blog/${post.slug}`}
+            data-tags={post.data.tags.join(',')}
+            class="glass glass-hover group flex flex-col gap-3 rounded-2xl p-6 reveal sm:flex-row sm:items-center"
+            data-astro-prefetch
+          >
+            <span class="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-accent/10 text-3xl">
+              {post.data.emoji}
+            </span>
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <h2 class="font-display text-xl font-bold group-hover:text-accent">{post.data.title}</h2>
+              </div>
+              <p class="mt-1 text-sm text-muted">{post.data.description}</p>
+              <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+                <time datetime={post.data.pubDate.toISOString()}>{fmt(post.data.pubDate)}</time>
+                {post.data.tags.map((t) => <span class="tag !py-0.5 !text-[10px]">#{t}</span>)}
+              </div>
+            </div>
+            <span class="hidden text-accent transition-transform group-hover:translate-x-1 sm:block">→</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    <p id="no-match" class="hidden py-12 text-center text-muted">No posts with that tag.</p>
+  </section>
+</BaseLayout>
+
+<script>
+  function initTags() {
+    const bar = document.getElementById('tag-bar');
+    const list = document.getElementById('post-list');
+    const noMatch = document.getElementById('no-match');
+    if (!bar || !list) return;
+    const buttons = Array.from(bar.querySelectorAll('[data-tag]')) as HTMLButtonElement[];
+    const posts = Array.from(list.children) as HTMLElement[];
+
+    bar.onclick = (e) => {
+      const btn = (e.target as HTMLElement).closest('[data-tag]') as HTMLButtonElement | null;
+      if (!btn) return;
+      const tag = btn.dataset.tag!;
+      buttons.forEach((b) => {
+        const active = b === btn;
+        b.classList.toggle('bg-accent', active);
+        b.classList.toggle('text-white', active);
+        b.classList.toggle('glass', !active);
+        b.classList.toggle('text-muted', !active);
+      });
+      let shown = 0;
+      posts.forEach((p) => {
+        const tags = (p.dataset.tags || '').split(',');
+        const match = tag === 'All' || tags.includes(tag);
+        p.style.display = match ? '' : 'none';
+        if (match) shown++;
+      });
+      noMatch?.classList.toggle('hidden', shown > 0);
+    };
+  }
+  document.addEventListener('astro:page-load', initTags);
+</script>

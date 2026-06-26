@@ -1,0 +1,77 @@
+---
+import type { Project } from '@/config';
+export interface Props { project: Project; }
+const { project } = Astro.props;
+
+// GitHub-style language dot colors. Falls back to the accent if unknown.
+const LANG_COLORS: Record<string, string> = {
+  JavaScript: '#f1e05a',
+  TypeScript: '#3178c6',
+  Python: '#3572A5',
+  C: '#555555',
+  Astro: '#ff5d01',
+  HTML: '#e34c26',
+  CSS: '#563d7c',
+};
+const lang = project.tags.find((t) => t in LANG_COLORS);
+---
+
+<!-- Double-bezel: an outer tray cradling an inner glass core (concentric radii). -->
+<div
+  data-tilt
+  class="group reveal rounded-[1.75rem] p-1.5 ring-1 ring-black/[0.06] [transform-style:preserve-3d] dark:ring-white/10"
+  style="background-color: rgb(var(--glass-bg) / calc(var(--glass-bg-opacity) * 0.4));"
+>
+<article class="glass flex h-full flex-col overflow-hidden rounded-[1.4rem] transition-colors duration-500 group-hover:border-accent/50">
+  <!-- Cover -->
+  <div class="relative flex h-36 items-center justify-center overflow-hidden">
+    <div
+      class="absolute inset-0 opacity-30 transition-opacity group-hover:opacity-60"
+      style="background: linear-gradient(135deg, rgb(var(--accent) / 0.6), rgb(var(--accent-soft) / 0.3));"
+    >
+    </div>
+    {project.image ? (
+      <img src={project.image} alt={project.title} class="relative h-full w-full object-cover" loading="lazy" />
+    ) : (
+      <span class="relative text-5xl drop-shadow-lg transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6">
+        {project.emoji ?? '📦'}
+      </span>
+    )}
+    {project.stars ? (
+      <span class="glass absolute right-3 top-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold">
+        <span class="text-accent">★</span>{project.stars}
+      </span>
+    ) : null}
+  </div>
+
+  <div class="flex flex-1 flex-col gap-3 p-5">
+    <div class="flex items-center justify-between gap-2">
+      <h3 class="font-display text-lg font-bold transition-colors group-hover:text-accent">{project.title}</h3>
+      {lang && (
+        <span class="flex shrink-0 items-center gap-1.5 text-xs text-muted">
+          <span class="h-2.5 w-2.5 rounded-full" style={`background:${LANG_COLORS[lang]}`}></span>
+          {lang}
+        </span>
+      )}
+    </div>
+    <p class="flex-1 text-sm text-muted">{project.description}</p>
+
+    <div class="flex flex-wrap gap-1.5">
+      {project.tags.map((t) => <span class="tag">{t}</span>)}
+    </div>
+
+    <div class="mt-1 flex items-center gap-3 text-sm font-medium">
+      {project.live && project.live !== '#' && (
+        <a href={project.live} target="_blank" rel="noopener" class="text-accent link-underline">
+          Live ↗
+        </a>
+      )}
+      {project.repo && project.repo !== '#' && (
+        <a href={project.repo} target="_blank" rel="noopener" class="text-muted link-underline hover:text-ink">
+          Code ↗
+        </a>
+      )}
+    </div>
+  </div>
+</article>
+</div>

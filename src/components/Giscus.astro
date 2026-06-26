@@ -1,0 +1,73 @@
+---
+import { giscus } from '@/config';
+const configured = giscus.repoId && giscus.categoryId;
+---
+
+{configured ? (
+  <div class="giscus-wrap glass rounded-2xl p-4 sm:p-6">
+    <div id="giscus-container"></div>
+  </div>
+) : (
+  <div class="glass rounded-2xl p-6 text-sm leading-relaxed text-muted">
+    <p class="mb-2 font-semibold text-ink">💬 Comments aren't wired up yet.</p>
+    <p>
+      To enable the guestbook &amp; comments, fill in the <code class="text-accent">giscus</code>
+      settings in <code class="text-accent">src/config.ts</code> — there are step-by-step
+      instructions right there in the comments. It uses
+      <a href="https://giscus.app" target="_blank" rel="noopener" class="text-accent link-underline">Giscus</a>
+      (free, backed by GitHub Discussions).
+    </p>
+  </div>
+)}
+
+{configured && (
+  <script
+    is:inline
+    define:vars={{
+      repo: giscus.repo,
+      repoId: giscus.repoId,
+      category: giscus.category,
+      categoryId: giscus.categoryId,
+    }}
+  >
+    function loadGiscus() {
+      const container = document.getElementById('giscus-container');
+      if (!container || container.querySelector('iframe.giscus-frame')) return;
+      const dark = document.documentElement.classList.contains('dark');
+      const s = document.createElement('script');
+      s.src = 'https://giscus.app/client.js';
+      s.setAttribute('data-repo', repo);
+      s.setAttribute('data-repo-id', repoId);
+      s.setAttribute('data-category', category);
+      s.setAttribute('data-category-id', categoryId);
+      s.setAttribute('data-mapping', 'pathname');
+      s.setAttribute('data-strict', '0');
+      s.setAttribute('data-reactions-enabled', '1');
+      s.setAttribute('data-emit-metadata', '0');
+      s.setAttribute('data-input-position', 'top');
+      s.setAttribute('data-theme', dark ? 'noborder_dark' : 'noborder_light');
+      s.setAttribute('data-lang', 'en');
+      s.crossOrigin = 'anonymous';
+      s.async = true;
+      container.appendChild(s);
+    }
+
+    // Keep Giscus theme in sync with the site theme.
+    function syncTheme() {
+      const frame = document.querySelector('iframe.giscus-frame');
+      if (!frame) return;
+      const dark = document.documentElement.classList.contains('dark');
+      frame.contentWindow?.postMessage(
+        { giscus: { setConfig: { theme: dark ? 'noborder_dark' : 'noborder_light' } } },
+        'https://giscus.app'
+      );
+    }
+    new MutationObserver(syncTheme).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    loadGiscus();
+    document.addEventListener('astro:page-load', loadGiscus);
+  </script>
+)}

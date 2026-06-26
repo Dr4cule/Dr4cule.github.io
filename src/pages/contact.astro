@@ -1,0 +1,127 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import SocialIcons from '@/components/SocialIcons.astro';
+import { site, web3forms } from '@/config';
+const configured = !!web3forms.accessKey;
+---
+
+<BaseLayout title="Contact" description={`Send ${site.name} a private message.`}>
+  <section class="mx-auto max-w-2xl py-12">
+    <header class="mb-8 flex flex-col items-center text-center reveal">
+      <span class="eyebrow mb-4">Contact</span>
+      <h1 class="font-display text-4xl font-bold sm:text-5xl">Get in touch</h1>
+      <p class="mt-3 text-muted">
+        Got a project, a question, or just want to say hi? Drop me a private message —
+        it goes straight to my inbox. No one else sees it.
+      </p>
+    </header>
+
+    {!configured && (
+      <div class="mb-6 glass rounded-2xl border-l-4 !border-l-amber-400 p-5 text-sm text-muted reveal">
+        <p class="font-semibold text-ink">⚙️ Almost ready — one quick step for the site owner.</p>
+        <p class="mt-1">
+          The form below is fully built but needs a free
+          <a href="https://web3forms.com" target="_blank" rel="noopener" class="text-accent link-underline">Web3Forms</a>
+          access key. Add it to <code class="text-accent">src/config.ts</code> (field
+          <code class="text-accent">web3forms.accessKey</code>) and messages will start arriving in your email.
+        </p>
+      </div>
+    )}
+
+    <form id="contact-form" class="glass rounded-2xl p-6 sm:p-8 reveal" novalidate>
+      <input type="hidden" name="access_key" value={web3forms.accessKey} />
+      <input type="hidden" name="subject" value={`New message from your website · ${site.name}`} />
+      <input type="hidden" name="from_name" value={`${site.name} website`} />
+      <!-- Honeypot anti-spam field (hidden from humans) -->
+      <input type="checkbox" name="botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off" />
+
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div class="sm:col-span-1">
+          <label for="name" class="mb-1.5 block text-sm font-medium">Name</label>
+          <input
+            id="name" name="name" type="text" required placeholder="Your name"
+            class="w-full rounded-xl bg-black/5 px-4 py-2.5 text-sm outline-none ring-1 ring-white/10 transition focus:ring-accent dark:bg-white/5"
+          />
+        </div>
+        <div class="sm:col-span-1">
+          <label for="email" class="mb-1.5 block text-sm font-medium">Email</label>
+          <input
+            id="email" name="email" type="email" required placeholder="you@example.com"
+            class="w-full rounded-xl bg-black/5 px-4 py-2.5 text-sm outline-none ring-1 ring-white/10 transition focus:ring-accent dark:bg-white/5"
+          />
+        </div>
+        <div class="sm:col-span-2">
+          <label for="message" class="mb-1.5 block text-sm font-medium">Message</label>
+          <textarea
+            id="message" name="message" required rows="5" placeholder="What's on your mind?"
+            class="w-full resize-y rounded-xl bg-black/5 px-4 py-2.5 text-sm outline-none ring-1 ring-white/10 transition focus:ring-accent dark:bg-white/5"
+          ></textarea>
+        </div>
+      </div>
+
+      <button
+        type="submit" id="submit-btn"
+        class="btn btn-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-50"
+        disabled={!configured}
+      >
+        {configured ? 'Send message' : 'Form not configured yet'}
+      </button>
+
+      <p id="form-status" class="mt-4 hidden text-center text-sm"></p>
+    </form>
+
+    <div class="mt-8 flex flex-col items-center gap-3 reveal">
+      <p class="text-xs uppercase tracking-wider text-muted">or find me elsewhere</p>
+      <SocialIcons />
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  function initContact() {
+    const form = document.getElementById('contact-form') as HTMLFormElement | null;
+    const status = document.getElementById('form-status');
+    const btn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+    if (!form || !status || !btn || btn.disabled) return;
+
+    function setStatus(msg: string, ok: boolean) {
+      status!.textContent = msg;
+      status!.classList.remove('hidden');
+      status!.style.color = ok ? 'rgb(34 197 94)' : 'rgb(244 63 94)';
+    }
+
+    // `.onsubmit =` (not addEventListener) so it can't bind twice and send
+    // duplicate messages if init runs more than once.
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      if (!form.checkValidity()) {
+        setStatus('Please fill in all fields with a valid email.', false);
+        return;
+      }
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = 'Sending…';
+
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setStatus("🎉 Message sent! I'll get back to you soon.", true);
+          form.reset();
+        } else {
+          setStatus(data.message || 'Something went wrong. Please try again.', false);
+        }
+      } catch {
+        setStatus('Network error — please try again later.', false);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = original;
+      }
+    };
+  }
+  document.addEventListener('astro:page-load', initContact);
+</script>

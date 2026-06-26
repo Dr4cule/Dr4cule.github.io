@@ -1,0 +1,21 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="404 — Off the map">
+  <section class="flex min-h-[60vh] flex-col items-center justify-center py-20 text-center">
+    <p class="font-mono text-sm text-accent">error 404</p>
+    <h1 class="mt-4 font-display text-7xl font-bold sm:text-9xl">
+      <span class="gradient-text">4</span>
+      <span class="inline-block animate-float">🏴‍☠️</span>
+      <span class="gradient-text">4</span>
+    </h1>
+    <p class="mt-6 max-w-md text-lg text-muted">
+      This page sailed off the edge of the map. The treasure isn't here — but it's out there somewhere.
+    </p>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <a href="/" class="btn btn-primary">Back to port</a>
+      <a href="/projects" class="btn btn-ghost">Browse my projects</a>
+    </div>
+  </section>
+</BaseLayout>

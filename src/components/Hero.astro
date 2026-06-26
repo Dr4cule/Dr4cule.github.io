@@ -1,0 +1,108 @@
+---
+import { site } from '@/config';
+import SocialIcons from '@/components/SocialIcons.astro';
+import Button from '@/components/Button.astro';
+
+// Words that cycle in the headline.
+const words = ['bots', 'automations', 'tools', 'a little chaos'];
+---
+
+<section class="relative flex flex-col items-center justify-center py-16 text-center sm:py-24">
+  <!-- Avatar -->
+  <div class="relative mb-8" data-hero="1" style="animation-delay: 0ms">
+    <div
+      class="absolute inset-0 -z-10 rounded-full blur-2xl"
+      style="background: radial-gradient(circle, rgb(var(--accent) / 0.5), transparent 70%);"
+    >
+    </div>
+    <img
+      src={site.avatar}
+      alt={site.name}
+      width="128"
+      height="128"
+      class="avatar-ring h-28 w-28 rounded-full object-cover sm:h-32 sm:w-32 animate-float"
+    />
+  </div>
+
+  <div class="glass mb-6 rounded-full px-4 py-1.5 text-xs font-medium text-muted" data-hero="2" style="animation-delay: 80ms">
+    <span class="mr-1.5 inline-block h-2 w-2 animate-pulse rounded-full" style="background-color: rgb(var(--accent));"></span>
+    Open to collabs · {site.location}
+  </div>
+
+  <h1 class="max-w-3xl font-display text-5xl font-bold leading-tight text-balance sm:text-7xl" data-hero="3" style="animation-delay: 160ms">
+    Hi, I'm <span class="gradient-text">{site.name}</span>
+  </h1>
+
+  <!-- Rotating headline -->
+  <p class="mt-5 font-display text-xl font-medium sm:text-2xl" data-hero="4" style="animation-delay: 240ms">
+    I build
+    <span
+      id="rotator"
+      class="gradient-text inline-block min-w-[6ch] text-left transition-all duration-300"
+      data-words={JSON.stringify(words)}
+    >{words[0]}</span>
+  </p>
+
+  <p class="mt-4 max-w-xl text-base text-muted text-balance" data-hero="5" style="animation-delay: 320ms">{site.tagline}</p>
+
+  <div class="mt-9 flex flex-wrap items-center justify-center gap-3" data-hero="6" style="animation-delay: 400ms">
+    <Button href="/projects" icon="→">See my work</Button>
+    <Button href="/contact" variant="ghost" icon="✦">Get in touch</Button>
+  </div>
+
+  <SocialIcons class="mt-7" />
+
+  <div class="mt-14 animate-float text-muted" aria-hidden="true">
+    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </div>
+</section>
+
+<style>
+  [data-hero] {
+    opacity: 0;
+    animation: hero-in 0.7s ease forwards;
+  }
+  @keyframes hero-in {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-hero] { opacity: 1; animation: none; }
+  }
+</style>
+
+<script>
+  function initRotator() {
+    const el = document.getElementById('rotator');
+    if (!el) return;
+    let words: string[] = [];
+    try { words = JSON.parse(el.dataset.words || '[]'); } catch {}
+    if (words.length < 2) return;
+
+    // Guard so neither the interval nor its inner timeout stacks across
+    // View Transitions navigations.
+    const w = window as any;
+    if (w._rotatorTimer) clearInterval(w._rotatorTimer);
+    if (w._rotatorInner) clearTimeout(w._rotatorInner);
+    let i = 0;
+    w._rotatorTimer = setInterval(() => {
+      const cur = document.getElementById('rotator');
+      if (!cur) { clearInterval(w._rotatorTimer); return; }
+      i = (i + 1) % words.length;
+      cur.style.opacity = '0';
+      cur.style.transform = 'translateY(-6px)';
+      w._rotatorInner = setTimeout(() => {
+        // Re-query in case the DOM was swapped during the fade.
+        const el2 = document.getElementById('rotator');
+        if (!el2) return;
+        el2.textContent = words[i];
+        el2.style.opacity = '1';
+        el2.style.transform = 'translateY(0)';
+      }, 250);
+    }, 2200);
+  }
+  initRotator();
+  document.addEventListener('astro:page-load', initRotator);
+</script>

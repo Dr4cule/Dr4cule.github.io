@@ -1,0 +1,13 @@
+{
+  "name": "Dr4cule",
+  "short_name": "Dr4cule",
+  "description": "Personal site of Dr4cule — developer, automation enthusiast, anime fan.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0809",
+  "theme_color": "#0b0809",
+  "icons": [
+    { "src": "/avatar.png", "sizes": "300x300", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

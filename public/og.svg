@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0809"/>
+      <stop offset="1" stop-color="#1a0b0d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.2" cy="0.3" r="0.7">
+      <stop offset="0" stop-color="#e11d2a" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#e11d2a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.9" cy="0.8" r="0.6">
+      <stop offset="0" stop-color="#b8860b" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#b8860b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="txt" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e11d2a"/>
+      <stop offset="1" stop-color="#d4af37"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+  <text x="80" y="300" font-size="108" font-weight="700" fill="url(#txt)" font-family="'Space Grotesk', system-ui, sans-serif">Dr4cule</text>
+  <text x="84" y="368" font-size="34" fill="#a69a9a" font-family="system-ui, sans-serif">Automating life, one bot at a time · Anime enjoyer 👒</text>
+  <text x="84" y="448" font-size="25" fill="#d4af37" font-family="ui-monospace, monospace">projects · games · portfolio · contact</text>
+  <circle cx="1040" cy="160" r="68" fill="none" stroke="url(#txt)" stroke-width="3"/>
+  <text x="1040" y="195" font-size="90" text-anchor="middle" font-family="system-ui">🏴‍☠️</text>
+</svg>

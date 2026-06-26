@@ -1,0 +1,103 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/Hero.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import Button from '@/components/Button.astro';
+import { site, projects, skills } from '@/config';
+import { getCollection } from 'astro:content';
+
+const featured = projects.filter((p) => p.featured).slice(0, 3);
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+---
+
+<BaseLayout>
+  <Hero />
+
+  <!-- Quick intro -->
+  <section class="mx-auto max-w-3xl pb-8 text-center reveal">
+    <p class="text-lg leading-relaxed text-muted">{site.bio}</p>
+  </section>
+
+  <!-- Skill marquee (infinite scroll, pauses on hover) -->
+  <section class="reveal py-8">
+    <div
+      class="group glass relative overflow-hidden rounded-2xl py-4"
+      style="-webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);"
+    >
+      <div class="flex w-max animate-marquee gap-2.5 px-2 group-hover:[animation-play-state:paused]">
+        {[...skills, ...skills].map((s) => <span class="tag whitespace-nowrap">{s}</span>)}
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured projects -->
+  <section class="py-12">
+    <div class="mb-8 flex items-end justify-between reveal">
+      <div>
+        <span class="eyebrow mb-3">Selected work</span>
+        <h2 class="font-display text-3xl font-bold">Featured projects</h2>
+        <p class="mt-1 text-muted">A few things I'm proud of.</p>
+      </div>
+      <a href="/projects" class="hidden text-sm font-medium text-accent link-underline sm:block">All projects →</a>
+    </div>
+
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {featured.map((p) => <ProjectCard project={p} />)}
+    </div>
+    <div class="mt-6 text-center sm:hidden">
+      <a href="/projects" class="text-sm font-medium text-accent link-underline">All projects →</a>
+    </div>
+  </section>
+
+  <!-- Latest posts -->
+  {posts.length > 0 && (
+    <section class="py-12">
+      <div class="mb-8 flex items-end justify-between reveal">
+        <div>
+          <h2 class="font-display text-3xl font-bold">From the blog</h2>
+          <p class="mt-1 text-muted">Thoughts, notes, and write-ups.</p>
+        </div>
+        <a href="/blog" class="hidden text-sm font-medium text-accent link-underline sm:block">All posts →</a>
+      </div>
+
+      <div class="grid gap-4">
+        {posts.map((post) => (
+          <a
+            href={`/blog/${post.slug}`}
+            class="glass glass-hover flex items-center gap-4 rounded-2xl p-5 reveal"
+            data-astro-prefetch
+          >
+            <span class="text-3xl">{post.data.emoji}</span>
+            <div class="flex-1">
+              <h3 class="font-semibold">{post.data.title}</h3>
+              <p class="line-clamp-1 text-sm text-muted">{post.data.description}</p>
+            </div>
+            <time class="hidden text-xs text-muted sm:block" datetime={post.data.pubDate.toISOString()}>
+              {fmt(post.data.pubDate)}
+            </time>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- Contact CTA -->
+  <section class="py-12 reveal">
+    <div class="glass relative overflow-hidden rounded-3xl px-6 py-12 text-center">
+      <div class="absolute -right-10 -top-10 text-[10rem] opacity-10 select-none">🏴‍☠️</div>
+      <h2 class="relative font-display text-3xl font-bold sm:text-4xl">Got an idea? Let's build it.</h2>
+      <p class="relative mx-auto mt-3 max-w-md text-muted">
+        Whether it's a bot, an automation, or just a chat about anime — my inbox is open.
+      </p>
+      <div class="relative mt-7 flex justify-center">
+        <Button href="/contact" icon="→">Get in touch</Button>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

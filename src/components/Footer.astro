@@ -1,0 +1,41 @@
+---
+import { site, nav } from '@/config';
+import SocialIcons from '@/components/SocialIcons.astro';
+const year = 2026;
+---
+
+<footer class="relative z-10 mt-24 px-4 pb-10 sm:px-6 lg:px-8">
+  <div class="glass mx-auto max-w-6xl rounded-2xl px-6 py-10">
+    <div class="flex flex-col items-center gap-5 text-center">
+      <a href="/" class="flex items-center gap-2.5">
+        <img src={site.avatar} alt={site.name} width="36" height="36" class="avatar-ring h-9 w-9 rounded-full object-cover" />
+        <span class="font-display text-xl font-bold gradient-text">{site.name}</span>
+      </a>
+      <p class="max-w-md text-sm text-muted">{site.tagline}</p>
+
+      <!-- quick nav -->
+      <ul class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm">
+        {nav.map((l) => (
+          <li>
+            <a href={l.href} class="text-muted link-underline hover:text-ink">{l.label}</a>
+          </li>
+        ))}
+      </ul>
+
+      <SocialIcons class="mt-1" />
+    </div>
+
+    <hr class="my-7 border-white/10" />
+
+    <div class="flex flex-col items-center justify-between gap-2 text-xs text-muted sm:flex-row">
+      <span>© {year} {site.name} · All rights reserved</span>
+      <div class="flex items-center gap-x-3">
+        <a href="/rss.xml" class="link-underline hover:text-ink">RSS</a>
+        <span class="opacity-40">·</span>
+        <span>Built with Astro</span>
+        <span class="opacity-40">·</span>
+        <span class="text-accent">press ⌘K</span>
+      </div>
+    </div>
+  </div>
+</footer>

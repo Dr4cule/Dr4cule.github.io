@@ -1,0 +1,154 @@
+---
+import { nav } from '@/config';
+
+// Extra quick actions beyond the nav links.
+const actions = [
+  ...nav.map((n) => ({ ...n, icon: '→' })),
+  { label: 'Toggle theme', href: '#theme', icon: '◐' },
+  { label: 'View RSS feed', href: '/rss.xml', icon: '📡' },
+  { label: 'GitHub', href: 'https://github.com/Dr4cule', icon: '⌥' },
+];
+---
+
+<div
+  id="cmdk"
+  class="fixed inset-0 z-[70] hidden items-start justify-center bg-black/40 backdrop-blur-sm p-4 pt-[15vh]"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Command palette"
+>
+  <div class="glass w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl">
+    <div class="flex items-center gap-3 border-b border-white/10 px-4">
+      <span class="text-muted">🔍</span>
+      <input
+        id="cmdk-input"
+        type="text"
+        placeholder="Jump to… (type to filter)"
+        class="w-full bg-transparent py-4 text-sm text-ink outline-none placeholder:text-muted"
+        autocomplete="off"
+      />
+      <kbd class="glass rounded px-1.5 py-0.5 font-mono text-[10px] text-muted">esc</kbd>
+    </div>
+    <ul id="cmdk-list" class="max-h-72 overflow-y-auto p-2">
+      {actions.map((a, i) => (
+        <li>
+          <a
+            href={a.href}
+            data-cmdk-item
+            data-label={a.label.toLowerCase()}
+            data-action={a.href === '#theme' ? 'theme' : ''}
+            class:list={[
+              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
+              i === 0 ? 'bg-accent/15 text-ink' : 'text-muted hover:bg-accent/10 hover:text-ink',
+            ]}
+          >
+            <span class="w-5 text-center opacity-70">{a.icon}</span>
+            <span>{a.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
+<script>
+  // The palette lives in BaseLayout, so its DOM is swapped on every View
+  // Transitions navigation. We keep a module-level controller that initCmdk
+  // refreshes each page-load, and bind the global key listener exactly once.
+  let ctl: any = null;
+
+  function initCmdk() {
+    const modal = document.getElementById('cmdk');
+    const input = document.getElementById('cmdk-input') as HTMLInputElement | null;
+    const list = document.getElementById('cmdk-list');
+    if (!modal || !input || !list) return;
+
+    const items = () =>
+      Array.from(list.querySelectorAll('[data-cmdk-item]')) as HTMLAnchorElement[];
+    const visibleItems = () =>
+      items().filter((it) => (it.parentElement as HTMLElement).style.display !== 'none');
+
+    function filter(q: string) {
+      const visible: HTMLAnchorElement[] = [];
+      items().forEach((it) => {
+        const match = it.dataset.label?.includes(q) ?? false;
+        (it.parentElement as HTMLElement).style.display = match ? '' : 'none';
+        it.classList.remove('bg-accent/15', 'text-ink');
+        if (match) visible.push(it);
+      });
+      visible[0]?.classList.add('bg-accent/15', 'text-ink');
+    }
+
+    function move(dir: number) {
+      const visible = visibleItems();
+      if (!visible.length) return;
+      const cur = visible.findIndex((it) => it.classList.contains('bg-accent/15'));
+      visible.forEach((it) => it.classList.remove('bg-accent/15', 'text-ink'));
+      const next = ((cur + dir) + visible.length) % visible.length;
+      visible[next]?.classList.add('bg-accent/15', 'text-ink');
+      visible[next]?.scrollIntoView({ block: 'nearest' });
+    }
+
+    function enter() {
+      const visible = visibleItems();
+      const active = visible.find((it) => it.classList.contains('bg-accent/15')) || visible[0];
+      active?.click();
+    }
+
+    const isOpen = () => !modal!.classList.contains('hidden');
+    function open() {
+      modal!.classList.remove('hidden');
+      modal!.classList.add('flex');
+      input!.value = '';
+      filter('');
+      setTimeout(() => input!.focus(), 20);
+    }
+    function close() {
+      modal!.classList.add('hidden');
+      modal!.classList.remove('flex');
+    }
+
+    // Idempotent element handlers (property assignment, not addEventListener).
+    input.oninput = () => filter(input.value.trim().toLowerCase());
+
+    list.onclick = (e) => {
+      const link = (e.target as HTMLElement).closest('[data-cmdk-item]') as HTMLAnchorElement | null;
+      if (!link) return;
+      if (link.dataset.action === 'theme') {
+        e.preventDefault();
+        (window as any).__toggleTheme?.();
+      }
+      close();
+    };
+
+    modal.onclick = (e) => {
+      if (e.target === modal) close();
+    };
+
+    // Refresh the controller the global key handler talks to.
+    ctl = { open, close, isOpen, move, enter };
+    (window as any).openCommandPalette = open;
+  }
+
+  // Bind the global shortcut handler ONCE; it always talks to the current ctl.
+  if (!(window as any)._cmdkKeys) {
+    (window as any)._cmdkKeys = true;
+    window.addEventListener('keydown', (e) => {
+      if (!ctl) return;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        ctl.isOpen() ? ctl.close() : ctl.open();
+      } else if (e.key === 'Escape' && ctl.isOpen()) {
+        ctl.close();
+      } else if (ctl.isOpen() && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        e.preventDefault();
+        ctl.move(e.key === 'ArrowDown' ? 1 : -1);
+      } else if (ctl.isOpen() && e.key === 'Enter') {
+        e.preventDefault();
+        ctl.enter();
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', initCmdk);
+</script>
